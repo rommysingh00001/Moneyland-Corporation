@@ -12,10 +12,12 @@ body{background:radial-gradient(circle at top,#312e81 0%,#0f172a 40%,#020617 100
 .number-box:hover{transform:scale(1.1);border-color:#f59e0b;box-shadow:0 0 10px #f59e0b;}
 .number-box.active{background:linear-gradient(135deg,#f59e0b,#fde047);color:#111827;transform:scale(1.15);box-shadow:0 0 15px #f59e0b;}
 .slot-display{display:flex;gap:5px;margin-bottom:15px;}
-.result-tv{background:black;border-radius:20px;padding:20px;font-size:40px;font-weight:900;letter-spacing:10px;text-align:center;border:4px solid #f59e0b;box-shadow:0 0 20px #f59e0b;min-height:80px;display:flex;align-items:center;justify-content:center;}
+.result-tv{background:black;border-radius:20px;padding:20px;font-size:40px;font-weight:900;letter-spacing:10px;text-align:center;border:4px solid #f59e0b;box-shadow:0 0 20px #f59e0b,inset 0 0 20px rgba(245,158,11,.4);min-height:80px;display:flex;align-items:center;justify-content:center;}
+.bet-display{background:black;border-radius:20px;padding:25px;font-size:50px;font-weight:900;letter-spacing:10px;text-align:center;border:4px solid #22c55e;box-shadow:0 0 25px #22c55e,inset 0 0 20px rgba(34,197,94,.4);margin-bottom:15px;display:flex;align-items:center;justify-content:center;}
 .btn{background:linear-gradient(90deg,#f59e0b,#fde047);color:black;font-size:18px;font-weight:700;padding:12px 20px;border-radius:12px;width:100%;transition:.25s;cursor:pointer;}
 .btn:hover{transform:scale(1.02);box-shadow:0 0 15px #f59e0b;}
 .history-card{background:#0f172a;border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.history-card .match{font-weight:bold;}
 </style>
 </head>
 <body class="p-5 md:p-10">
@@ -26,20 +28,22 @@ body{background:radial-gradient(circle at top,#312e81 0%,#0f172a 40%,#020617 100
 🎰 DBBA USER PANEL 🎰
 </h1>
 
+<!-- Number Grid -->
+<div class="mb-4">
+<div class="text-lg mb-2">Number Grid</div>
+<div id="number-grid" class="flex flex-wrap gap-2"></div>
+</div>
+
 <!-- User 10-slot selection -->
 <div class="mb-6">
-<div class="text-xl mb-3">Select Your 10 Numbers</div>
-<div id="slots" class="slot-display">
-  <!-- Slots will appear here -->
-</div>
-<div class="grid grid-cols-10 gap-2" id="number-grid">
-  <!-- Numbers 0-9 -->
-</div>
+<div class="text-xl mb-2">Select Your 10 Numbers</div>
+<div id="slots" class="slot-display"></div>
 </div>
 
 <!-- Amount -->
 <div class="mb-6">
 <label class="text-lg block mb-2">Bet Amount</label>
+<div id="bet-display" class="bet-display">0</div>
 <input type="number" id="betAmount" class="w-full p-3 rounded-xl bg-black text-white border border-yellow-500" placeholder="Enter Amount">
 </div>
 
@@ -71,9 +75,12 @@ body{background:radial-gradient(circle at top,#312e81 0%,#0f172a 40%,#020617 100
 <script>
 // --- VARIABLES ---
 let userBet = Array(10).fill(null);
-let numberGrid = document.getElementById("number-grid");
+let numberGridDiv = document.getElementById("number-grid");
 let slotsDiv = document.getElementById("slots");
 let betHistory = document.getElementById("bet-history");
+let betDisplay = document.getElementById("bet-display");
+let resultTV = document.getElementById("result-tv");
+let rewardDisplay = document.getElementById("reward-display");
 
 // CREATE 10 SLOTS
 for(let i=0;i<10;i++){
@@ -90,15 +97,14 @@ for(let i=0;i<=9;i++){
   box.className = "number-box";
   box.innerText = i;
   box.onclick = ()=>{
-    // Find first empty slot
     const emptyIndex = userBet.findIndex(x=>x===null);
-    if(emptyIndex===-1) return; // all slots full
+    if(emptyIndex===-1) return; 
     userBet[emptyIndex] = i;
     slotsDiv.children[emptyIndex].innerText = i;
     slotsDiv.children[emptyIndex].classList.add("active");
     updateUserBetDisplay();
   };
-  numberGrid.appendChild(box);
+  numberGridDiv.appendChild(box);
 }
 
 // UPDATE USER BET DISPLAY
@@ -106,6 +112,11 @@ function updateUserBetDisplay(){
   let display = userBet.map(x=>x===null?"-":x).join("");
   document.getElementById("user-bet").innerText = display;
 }
+
+// UPDATE BET DISPLAY
+document.getElementById("betAmount").addEventListener("input", e=>{
+  betDisplay.innerText = e.target.value || "0";
+});
 
 // PLACE BET BUTTON
 document.getElementById("placeBetBtn").onclick = ()=>{
@@ -118,9 +129,11 @@ document.getElementById("placeBetBtn").onclick = ()=>{
     alert("Enter a valid amount");
     return;
   }
-  // For demo, we push bet to history
+  // Add bet to history (temporary demo)
   addBetHistory(userBet.join(""), amount);
-  alert("✅ Bet Placed! Waiting for result...");
+
+  // Simulate result from admin for demo
+  simulateResult(userBet.join(""), amount);
 
   // Clear selection
   userBet = Array(10).fill(null);
@@ -129,4 +142,49 @@ document.getElementById("placeBetBtn").onclick = ()=>{
     slot.classList.remove("active");
   });
   document.getElementById("betAmount").value = "";
- 
+  betDisplay.innerText = "0";
+};
+
+// --- ADD BET HISTORY ---
+function addBetHistory(bet, amount, reward=null){
+  const div = document.createElement("div");
+  div.className = "history-card";
+  div.innerHTML = `
+    <div>${bet}</div>
+    <div>₹${amount}</div>
+    <div>${reward!==null?'Reward: '+reward+'x':''}</div>
+  `;
+  betHistory.prepend(div);
+}
+
+// --- SIMULATE ADMIN RESULT & CALCULATE REWARD ---
+function simulateResult(userBetStr, amount){
+  // Generate 10-digit result (0-9)
+  let resultArr = Array.from({length:10},()=>Math.floor(Math.random()*10));
+  let resultStr = resultArr.join("");
+  resultTV.innerText = resultStr;
+
+  // Calculate max streak
+  let streak = 0;
+  let maxStreak = 0;
+  for(let i=0;i<10;i++){
+    if(userBetStr[i] === resultStr[i].toString()){
+      streak++;
+      maxStreak = Math.max(maxStreak, streak);
+    } else {
+      streak = 0;
+    }
+  }
+
+  // Reward table
+  const rewardTable = {1:9,2:90,3:900,4:9000,5:90000,6:900000,7:9000000,8:90000000,9:900000000,10:9000000000};
+  let reward = rewardTable[maxStreak] || 0;
+  rewardDisplay.innerText = maxStreak>0?`Max Streak: ${maxStreak} → Reward: ${reward}x`:'No Match';
+
+  // Add to history with reward
+  addBetHistory(userBetStr, amount, reward);
+}
+
+</script>
+</body>
+</html>
