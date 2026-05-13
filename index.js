@@ -46,11 +46,17 @@ async function loadBets(){
           <b>Amount:</b> ₹${bet.amount}
         </div>
         <div class="text-right">
-          <b>Streak:</b> ${bet.current_streak}<br>
-          <b>Multiplier:</b> ${bet.current_multiplier}x
+          <b>Max Streak:</b> ${bet.current_streak}<br>
+          <b>Reward:</b> ${bet.current_multiplier}x
         </div>
       </div>`;
   });
+}
+
+/* ---------- REWARD MULTIPLIER BASED ON STREAK ---------- */
+function calculateReward(maxStreak){
+  if(maxStreak===0) return 0;
+  return 9 * (10**(maxStreak-1));
 }
 
 /* ---------- LIVE RESULT SUBSCRIPTION ---------- */
@@ -60,29 +66,31 @@ supabase.from("daily_results")
     document.getElementById("live-result").innerText = revealed || "Waiting for first reveal...";
     updateBets(revealed);
 
-    // Final winnings at 12 AM
+    // Final winnings at 12 AM (all 10 digits revealed)
     if(revealed.length === 10){
       showFinalWinnings();
     }
   })
   .subscribe();
 
-/* ---------- UPDATE BETS LOGIC ---------- */
+/* ---------- UPDATE BETS WITH CONTINUOUS STREAK LOGIC ---------- */
 async function updateBets(revealed){
   const { data } = await supabase.from("bets").select("*").eq("user_id", USER_ID);
 
   data.forEach(async bet=>{
-    let streak=0, maxStreak=0;
+    let streak = 0, maxStreak = 0;
     for(let i=0;i<revealed.length;i++){
-      if(bet.bet_number[i]===revealed[i]){
+      if(bet.bet_number[i] === revealed[i]){
         streak++;
         maxStreak = Math.max(maxStreak, streak);
-      }else{ streak=0; }
+      } else {
+        streak = 0; // streak reset on mismatch
+      }
     }
-    let multiplier = maxStreak ? 9 * (10**(maxStreak-1)) : 0;
+    let reward = calculateReward(maxStreak);
 
     await supabase.from("bets")
-      .update({ current_streak:maxStreak, current_multiplier:multiplier })
+      .update({ current_streak:maxStreak, current_multiplier:reward })
       .eq("id", bet.id);
   });
 
