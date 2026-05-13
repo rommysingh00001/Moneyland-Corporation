@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBBA Admin Panel</title>
+<script type="module" src="supabase.js"></script>
+<script type="module">
+import { supabase } from './supabase.js';
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { background: radial-gradient(circle, #0f0c29, #302b63, #24243e); color:white; font-family:'Segoe UI', sans-serif; }
+.card { background: rgba(0,0,0,0.7); border-radius:12px; padding:20px; margin:15px 0; box-shadow:0 0 20px rgba(255,255,255,0.2); backdrop-filter: blur(8px); }
+.btn { background: linear-gradient(90deg,#f59e0b,#fbbf24); color:#111; padding:10px 20px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; font-size:1.1rem; transition: transform 0.2s; }
+.btn:hover { transform: scale(1.05); background: linear-gradient(90deg,#fbbf24,#f59e0b); }
+input, select { background:#222; color:white; border:none; border-radius:8px; padding:10px; font-size:1.1rem; }
+#result-display { font-size:2rem; letter-spacing:5px; text-shadow: 0 0 15px #f59e0b; }
+</style>
+</head>
+<body class="p-6">
+
+<h1 class="text-4xl font-bold text-center mb-6">🎰 DBBA Admin Panel 🎰</h1>
+
+<div class="card">
+  <h2 class="text-2xl font-bold mb-2">Announce Result Digit</h2>
+  <select id="digit-select">
+    <option value="">Select Digit (0-9)</option>
+    <script>
+      for(let i=0;i<=9;i++){ document.write(`<option value="${i}">${i}</option>`); }
+    </script>
+  </select>
+  <input type="number" id="position" placeholder="Position 1-10 (digit no)">
+  <button id="announce-result" class="btn ml-2">Announce</button>
+  <div id="announce-status" class="mt-2 text-yellow-400 font-bold"></div>
+</div>
+
+<div class="card">
+  <h2 class="text-2xl font-bold mb-2">All Announced Results</h2>
+  <div id="results-list"></div>
+</div>
+
+<script type="module">
+import { supabase } from './supabase.js';
+
+// --- Announce Result ---
+document.getElementById('announce-result').addEventListener('click', async ()=>{
+  const digit = document.getElementById('digit-select').value;
+  const position = parseInt(document.getElementById('position').value);
+  if(digit==='' || isNaN(position) || position<1 || position>10){
+    document.getElementById('announce-status').innerText="Enter valid digit & position!";
+    return;
+  }
+
+  const {data,error} = await supabase
+    .from('results')
+    .insert([{ result_digit: digit, position: position }]);
+
+  if(error){ document.getElementById('announce-status').innerText = "Error: "+error.message; }
+  else{ document.getElementById('announce-status').innerText = `✅ Digit ${digit} announced at position ${position}`; loadResults(); }
+});
+
+// --- Load Results ---
+async function loadResults(){
+  const {data,error} = await supabase
+    .from('results')
+    .select('*')
+    .order('position', { ascending:true });
+  if(error){ console.log(error); return; }
+  const container = document.getElementById('results-list');
+  container.innerHTML = '';
+  data.forEach(d=>{
+    container.innerHTML += `<div class="flex justify-between card">
+      <div>Position #${d.position}</div>
+      <div>Digit: ${d.result_digit}</div>
+      <div>Announced: ${new Date(d.created_at).toLocaleTimeString()}</div>
+    </div>`;
+  });
+}
+
+// --- Realtime subscription to update instantly ---
+supabase
+  .channel('public:results')
+  .on('postgres_changes', { event: 'INSERT', schema:'public', table:'results' }, payload=>{
+    loadResults();
+  })
+  .subscribe();
+
+// Initial load
+loadResults();
+</script>
+</body>
+</html>
