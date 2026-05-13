@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DBBA USER PANEL</title>
+<title>DBBA USER PANEL - Round Based</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body{background:#050816;color:white;font-family:sans-serif;padding:20px;}
@@ -16,6 +16,7 @@ body{background:#050816;color:white;font-family:sans-serif;padding:20px;}
 .history-card{background:#0f172a;padding:15px;border-radius:15px;margin-bottom:10px;}
 .win{color:#22c55e;font-weight:bold;}
 .loss{color:#ef4444;font-weight:bold;}
+.disabled{opacity:0.5;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -28,6 +29,7 @@ body{background:#050816;color:white;font-family:sans-serif;padding:20px;}
 <input type="text" id="userBetInput" class="input-box" maxlength="10" placeholder="Enter 10-digit Bet (0-9)">
 <input type="number" id="betAmount" class="input-box" placeholder="Enter Amount">
 <button id="placeBetBtn" class="btn">🚀 Place Bet</button>
+<div id="roundStatus" class="mt-3 glow">🟢 Round Open: Place your bet</div>
 </div>
 
 <!-- LIVE RESULT DISPLAY -->
@@ -53,18 +55,36 @@ body{background:#050816;color:white;font-family:sans-serif;padding:20px;}
 // VARIABLES
 // ==========================
 let pendingBets = [];
+let roundOpen = true; // controls if bets are allowed
+let roundNumber = 1;
 
-// Reward table based on max streak
 const rewardTable = {1:9,2:90,3:900,4:9000,5:90000,6:900000,7:9000000,8:90000000,9:900000000,10:9000000000};
 
-// Load existing bet history from localStorage
+// Load existing history
 let storedHistory = JSON.parse(localStorage.getItem("dbba_user_history") || "[]");
-storedHistory.forEach(h => addHistory(h.bet,h.amount,h.status,h.reward));
+storedHistory.forEach(h => addHistory(h.bet,h.amount,h.status,h.reward,h.round));
+
+// ==========================
+// UPDATE ROUND STATUS
+// ==========================
+function updateRoundStatus(){
+    const statusDiv = document.getElementById("roundStatus");
+    statusDiv.innerHTML = roundOpen ? `🟢 Round ${roundNumber} Open: Place your bet` : `🔴 Round ${roundNumber} Closed: Waiting for admin result`;
+    document.getElementById("userBetInput").classList.toggle("disabled", !roundOpen);
+    document.getElementById("betAmount").classList.toggle("disabled", !roundOpen);
+    document.getElementById("placeBetBtn").classList.toggle("disabled", !roundOpen);
+}
+updateRoundStatus();
 
 // ==========================
 // PLACE BET
 // ==========================
 document.getElementById("placeBetBtn").onclick = ()=>{
+    if(!roundOpen){
+        alert("Round is closed! Wait for admin result.");
+        return;
+    }
+
     const bet = document.getElementById("userBetInput").value.trim();
     const amount = parseFloat(document.getElementById("betAmount").value);
     
@@ -78,16 +98,18 @@ document.getElementById("placeBetBtn").onclick = ()=>{
     }
 
     pendingBets.push({bet, amount});
-    addHistory(bet, amount, "Pending", 0);
+    addHistory(bet, amount, "Pending", 0, roundNumber);
 
     document.getElementById("userBetInput").value="";
     document.getElementById("betAmount").value="";
 };
 
 // ==========================
-// PROCESS RESULT
+// PROCESS RESULT FROM LOCALSTORAGE
 // ==========================
 function processResult(result){
+    if(!roundOpen || pendingBets.length === 0) return; // only process if round was open
+
     document.getElementById("resultTV").innerText = result;
 
     pendingBets.forEach(betObj=>{
@@ -106,30 +128,33 @@ function processResult(result){
         const winAmount = amount * multiplier;
         const status = multiplier>0?"WIN":"LOSS";
 
-        addHistory(bet, amount, status, winAmount);
+        addHistory(bet, amount, status, winAmount, roundNumber);
 
-        // Update reward display (last winning streak)
         if(multiplier>0){
             document.getElementById("rewardTV").innerText = `🔥 ${maxStreak} MATCH STREAK\n🏆 Won ₹${winAmount}`;
         } else {
             document.getElementById("rewardTV").innerText = "❌ NO MATCH";
         }
 
-        // Save history in localStorage
-        storedHistory.push({bet, amount, status, reward:winAmount});
-        localStorage.setItem("dbba_user_history", JSON.stringify(storedHistory));
+        storedHistory.push({bet, amount, status, reward:winAmount, round:roundNumber});
     });
 
+    localStorage.setItem("dbba_user_history", JSON.stringify(storedHistory));
+
+    // Round ends
+    roundOpen = false;
+    updateRoundStatus();
     pendingBets = [];
 }
 
 // ==========================
 // HISTORY DISPLAY
 // ==========================
-function addHistory(bet, amount, status, reward){
+function addHistory(bet, amount, status, reward, round){
     const div = document.createElement("div");
     div.className="history-card";
     div.innerHTML=`
+        <div><strong>Round:</strong> ${round}</div>
         <div><strong>Bet:</strong> ${bet}</div>
         <div><strong>Amount:</strong> ₹${amount}</div>
         <div class="${status==="WIN"?"win":"loss"}"><strong>${status}:</strong> ${reward>0?"₹"+reward:"0"}</div>
@@ -138,15 +163,28 @@ function addHistory(bet, amount, status, reward){
 }
 
 // ==========================
-// POLLING LOCALSTORAGE FOR RESULT
+// POLL LOCALSTORAGE FOR RESULT
 // ==========================
 setInterval(()=>{
     const result = localStorage.getItem("dbba_result");
-    if(result && result.length===10){
+    if(result && result.length===10 && roundOpen){
         processResult(result);
     }
 }, 2000);
 
+// ==========================
+// READY FOR NEXT ROUND
+// ==========================
+function startNextRound(){
+    roundOpen = true;
+    roundNumber++;
+    document.getElementById("resultTV").innerText = "----------";
+    document.getElementById("rewardTV").innerText = "Waiting for result...";
+    updateRoundStatus();
+}
+
+// Optional: Admin can trigger next round manually by clearing localStorage result
+// localStorage.removeItem("dbba_result"); startNextRound();
 </script>
 
 </body>
