@@ -504,6 +504,24 @@ document.querySelectorAll(".number-box")
 .forEach(x=>x.classList.remove("active"));
 
 }
+  const btn = document.getElementById("announceBtn");
+const input = document.getElementById("resultInput");
+const status = document.getElementById("status");
+
+btn.onclick = ()=>{
+    const value = input.value.trim();
+    if(!/^\d{10}$/.test(value)){
+        alert("Enter exactly 10 digits");
+        return;
+    }
+
+    // Save result in localStorage
+    localStorage.setItem("dbba_result", value);
+    localStorage.setItem("dbba_result_time", Date.now());
+
+    status.innerText = `✅ Result Announced: ${value}`;
+    alert("Result saved and announced!");
+}
 
 </script>
 
