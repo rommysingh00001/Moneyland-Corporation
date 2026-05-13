@@ -1,93 +1,377 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DBBA Admin Panel</title>
-<script type="module" src="supabase.js"></script>
-<script type="module">
-import { supabase } from './supabase.js';
-</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DBBA ADMIN PANEL</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
-body { background: radial-gradient(circle, #0f0c29, #302b63, #24243e); color:white; font-family:'Segoe UI', sans-serif; }
-.card { background: rgba(0,0,0,0.7); border-radius:12px; padding:20px; margin:15px 0; box-shadow:0 0 20px rgba(255,255,255,0.2); backdrop-filter: blur(8px); }
-.btn { background: linear-gradient(90deg,#f59e0b,#fbbf24); color:#111; padding:10px 20px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; font-size:1.1rem; transition: transform 0.2s; }
-.btn:hover { transform: scale(1.05); background: linear-gradient(90deg,#fbbf24,#f59e0b); }
-input, select { background:#222; color:white; border:none; border-radius:8px; padding:10px; font-size:1.1rem; }
-#result-display { font-size:2rem; letter-spacing:5px; text-shadow: 0 0 15px #f59e0b; }
-</style>
-</head>
-<body class="p-6">
-
-<h1 class="text-4xl font-bold text-center mb-6">🎰 DBBA Admin Panel 🎰</h1>
-
-<div class="card">
-  <h2 class="text-2xl font-bold mb-2">Announce Result Digit</h2>
-  <select id="digit-select">
-    <option value="">Select Digit (0-9)</option>
-    <script>
-      for(let i=0;i<=9;i++){ document.write(`<option value="${i}">${i}</option>`); }
-    </script>
-  </select>
-  <input type="number" id="position" placeholder="Position 1-10 (digit no)">
-  <button id="announce-result" class="btn ml-2">Announce</button>
-  <div id="announce-status" class="mt-2 text-yellow-400 font-bold"></div>
-</div>
-
-<div class="card">
-  <h2 class="text-2xl font-bold mb-2">All Announced Results</h2>
-  <div id="results-list"></div>
-</div>
-
-<script type="module">
-import { supabase } from './supabase.js';
-
-// --- Announce Result ---
-document.getElementById('announce-result').addEventListener('click', async ()=>{
-  const digit = document.getElementById('digit-select').value;
-  const position = parseInt(document.getElementById('position').value);
-  if(digit==='' || isNaN(position) || position<1 || position>10){
-    document.getElementById('announce-status').innerText="Enter valid digit & position!";
-    return;
-  }
-
-  const {data,error} = await supabase
-    .from('results')
-    .insert([{ result_digit: digit, position: position }]);
-
-  if(error){ document.getElementById('announce-status').innerText = "Error: "+error.message; }
-  else{ document.getElementById('announce-status').innerText = `✅ Digit ${digit} announced at position ${position}`; loadResults(); }
-});
-
-// --- Load Results ---
-async function loadResults(){
-  const {data,error} = await supabase
-    .from('results')
-    .select('*')
-    .order('position', { ascending:true });
-  if(error){ console.log(error); return; }
-  const container = document.getElementById('results-list');
-  container.innerHTML = '';
-  data.forEach(d=>{
-    container.innerHTML += `<div class="flex justify-between card">
-      <div>Position #${d.position}</div>
-      <div>Digit: ${d.result_digit}</div>
-      <div>Announced: ${new Date(d.created_at).toLocaleTimeString()}</div>
-    </div>`;
-  });
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
-// --- Realtime subscription to update instantly ---
-supabase
-  .channel('public:results')
-  .on('postgres_changes', { event: 'INSERT', schema:'public', table:'results' }, payload=>{
-    loadResults();
-  })
-  .subscribe();
+body{
+background:
+radial-gradient(circle at top,#312e81 0%,#0f172a 40%,#020617 100%);
+color:white;
+font-family:Arial,Helvetica,sans-serif;
+min-height:100vh;
+overflow-x:hidden;
+}
 
-// Initial load
-loadResults();
+.glow{
+text-shadow:
+0 0 10px #f59e0b,
+0 0 20px #f59e0b,
+0 0 40px #f59e0b;
+}
+
+.card{
+background:rgba(15,23,42,.75);
+border:1px solid rgba(255,255,255,.08);
+backdrop-filter:blur(14px);
+border-radius:25px;
+padding:25px;
+box-shadow:
+0 0 25px rgba(0,0,0,.5),
+0 0 15px rgba(245,158,11,.15);
+}
+
+.number-box{
+width:65px;
+height:65px;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:18px;
+font-size:26px;
+font-weight:700;
+cursor:pointer;
+transition:.25s;
+background:#111827;
+border:2px solid transparent;
+user-select:none;
+}
+
+.number-box:hover{
+transform:scale(1.08);
+border-color:#f59e0b;
+box-shadow:0 0 15px #f59e0b;
+}
+
+.number-box.active{
+background:linear-gradient(135deg,#f59e0b,#fde047);
+color:#111827;
+transform:scale(1.12);
+box-shadow:
+0 0 20px #f59e0b,
+0 0 40px #f59e0b;
+}
+
+.result-tv{
+background:black;
+border-radius:25px;
+padding:25px;
+font-size:60px;
+font-weight:900;
+letter-spacing:15px;
+text-align:center;
+font-family:monospace;
+border:4px solid #f59e0b;
+box-shadow:
+0 0 20px #f59e0b,
+inset 0 0 20px rgba(245,158,11,.4);
+min-height:120px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.btn{
+background:linear-gradient(90deg,#f59e0b,#fde047);
+color:black;
+font-size:18px;
+font-weight:700;
+padding:16px 25px;
+border-radius:18px;
+width:100%;
+transition:.25s;
+}
+
+.btn:hover{
+transform:translateY(-2px) scale(1.02);
+box-shadow:0 0 20px #f59e0b;
+}
+
+.result-card{
+background:#0f172a;
+border-radius:18px;
+padding:18px;
+border:1px solid rgba(255,255,255,.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:12px;
+}
+
+.status-open{
+color:#22c55e;
+font-weight:bold;
+}
+
+.status-close{
+color:#ef4444;
+font-weight:bold;
+}
+
+.status-result{
+color:#f59e0b;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body class="p-5 md:p-10">
+
+<div class="max-w-7xl mx-auto">
+
+<h1 class="text-5xl md:text-6xl font-black text-center mb-8 glow">
+🎰 DBBA ADMIN PANEL 🎰
+</h1>
+
+<!-- STATUS -->
+<div class="card mb-6">
+<div class="flex justify-between items-center flex-wrap gap-4">
+
+<div>
+<div class="text-xl opacity-70">Current Phase</div>
+<div id="phase" class="text-3xl font-black glow">
+Loading...
+</div>
+</div>
+
+<div>
+<div class="text-xl opacity-70">India Time</div>
+<div id="india-time" class="text-3xl font-black">
+00:00:00
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- LIVE RESULT TV -->
+<div class="card mb-6">
+
+<div class="text-3xl font-black mb-5 glow">
+LIVE RESULT DISPLAY
+</div>
+
+<div id="result-tv" class="result-tv">
+----------
+</div>
+
+</div>
+
+<!-- ANNOUNCE RESULT -->
+<div class="card mb-6">
+
+<div class="text-3xl font-black mb-5 glow">
+ANNOUNCE NEXT DIGIT
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-5 mb-6">
+
+<!-- POSITION -->
+<div class="md:col-span-2">
+<label class="text-lg block mb-3">Result Position</label>
+
+<select id="position"
+class="w-full bg-black border border-yellow-500 rounded-2xl p-5 text-2xl">
+<option value="1">Position 1</option>
+<option value="2">Position 2</option>
+<option value="3">Position 3</option>
+<option value="4">Position 4</option>
+<option value="5">Position 5</option>
+<option value="6">Position 6</option>
+<option value="7">Position 7</option>
+<option value="8">Position 8</option>
+<option value="9">Position 9</option>
+<option value="10">Position 10</option>
+</select>
+</div>
+
+<div class="md:col-span-3">
+<label class="text-lg block mb-3">
+Select Digit
+</label>
+
+<div id="number-grid"
+class="flex flex-wrap gap-3">
+</div>
+
+</div>
+
+</div>
+
+<button id="announceBtn" class="btn">
+🚀 ANNOUNCE RESULT
+</button>
+
+<div id="announce-status"
+class="mt-4 text-center text-xl font-bold">
+</div>
+
+</div>
+
+<!-- RESULT HISTORY -->
+<div class="card">
+
+<div class="text-3xl font-black mb-5 glow">
+RESULT HISTORY
+</div>
+
+<div id="results-history">
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let selectedDigit = null;
+let finalResult = Array(10).fill("-");
+
+// CREATE NUMBER GRID
+const grid = document.getElementById("number-grid");
+
+for(let i=0;i<=9;i++){
+
+const box = document.createElement("div");
+
+box.className = "number-box";
+
+box.innerText = i;
+
+box.onclick = ()=>{
+
+document.querySelectorAll(".number-box")
+.forEach(x=>x.classList.remove("active"));
+
+box.classList.add("active");
+
+selectedDigit = i;
+
+};
+
+grid.appendChild(box);
+
+}
+
+// INDIA TIME + STATUS
+function updateIndiaTime(){
+
+const now = new Date();
+
+const india = new Date(
+now.toLocaleString("en-US",{timeZone:"Asia/Kolkata"})
+);
+
+document.getElementById("india-time").innerText =
+india.toLocaleTimeString();
+
+const h = india.getHours();
+
+let phase = "";
+let cls = "";
+
+if(h>=0 && h<14){
+phase = "🟢 BETTING OPEN";
+cls = "status-open";
+}
+else if(h>=15 && h<=23){
+phase = "🟡 RESULT ANNOUNCEMENT";
+cls = "status-result";
+}
+else{
+phase = "🔴 BETTING CLOSED";
+cls = "status-close";
+}
+
+const phaseEl = document.getElementById("phase");
+
+phaseEl.innerText = phase;
+
+phaseEl.className = `text-3xl font-black glow ${cls}`;
+
+}
+
+setInterval(updateIndiaTime,1000);
+
+updateIndiaTime();
+
+// ANNOUNCE RESULT
+document.getElementById("announceBtn")
+.addEventListener("click",()=>{
+
+const position =
+parseInt(document.getElementById("position").value);
+
+if(selectedDigit===null){
+
+document.getElementById("announce-status")
+.innerText = "❌ SELECT A DIGIT";
+
+return;
+
+}
+
+finalResult[position-1] = selectedDigit;
+
+document.getElementById("result-tv")
+.innerText = finalResult.join("");
+
+document.getElementById("announce-status")
+.innerText =
+`✅ Digit ${selectedDigit} announced at position ${position}`;
+
+addHistory(position,selectedDigit);
+
+});
+
+// HISTORY
+function addHistory(position,digit){
+
+const history = document.getElementById("results-history");
+
+const div = document.createElement("div");
+
+div.className = "result-card";
+
+div.innerHTML = `
+<div class="text-xl font-bold">
+Position ${position}
+</div>
+
+<div class="text-3xl font-black glow">
+${digit}
+</div>
+
+<div class="opacity-70">
+${new Date().toLocaleTimeString()}
+</div>
+`;
+
+history.prepend(div);
+
+}
+
 </script>
+
 </body>
 </html>
