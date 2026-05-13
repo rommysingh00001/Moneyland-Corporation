@@ -1,528 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>DBBA ADMIN PANEL</title>
-
+<title>DBBA ADMIN PANEL - Round Based</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-background:
-radial-gradient(circle at top,#312e81 0%,#0f172a 40%,#020617 100%);
-color:white;
-font-family:Arial,Helvetica,sans-serif;
-min-height:100vh;
-overflow-x:hidden;
-}
-
-.glow{
-text-shadow:
-0 0 10px #f59e0b,
-0 0 20px #f59e0b,
-0 0 40px #f59e0b;
-}
-
-.card{
-background:rgba(15,23,42,.75);
-border:1px solid rgba(255,255,255,.08);
-backdrop-filter:blur(14px);
-border-radius:25px;
-padding:25px;
-box-shadow:
-0 0 25px rgba(0,0,0,.5),
-0 0 15px rgba(245,158,11,.15);
-margin-bottom:25px;
-}
-
-.number-box{
-width:65px;
-height:65px;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:18px;
-font-size:26px;
-font-weight:700;
-cursor:pointer;
-transition:.25s;
-background:#111827;
-border:2px solid transparent;
-user-select:none;
-}
-
-.number-box:hover{
-transform:scale(1.08);
-border-color:#f59e0b;
-box-shadow:0 0 15px #f59e0b;
-}
-
-.number-box.active{
-background:linear-gradient(135deg,#f59e0b,#fde047);
-color:#111827;
-transform:scale(1.12);
-box-shadow:
-0 0 20px #f59e0b,
-0 0 40px #f59e0b;
-}
-
-.result-tv{
-background:black;
-border-radius:25px;
-padding:25px;
-font-size:60px;
-font-weight:900;
-letter-spacing:15px;
-text-align:center;
-font-family:monospace;
-border:4px solid #f59e0b;
-box-shadow:
-0 0 20px #f59e0b,
-inset 0 0 20px rgba(245,158,11,.4);
-min-height:120px;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-.btn{
-background:linear-gradient(90deg,#f59e0b,#fde047);
-color:black;
-font-size:18px;
-font-weight:700;
-padding:16px 25px;
-border-radius:18px;
-width:100%;
-transition:.25s;
-cursor:pointer;
-border:none;
-}
-
-.btn:hover{
-transform:translateY(-2px) scale(1.02);
-box-shadow:0 0 20px #f59e0b;
-}
-
-.result-card{
-background:#0f172a;
-border-radius:18px;
-padding:18px;
-border:1px solid rgba(255,255,255,.08);
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:12px;
-}
-
-.status-open{
-color:#22c55e;
-font-weight:bold;
-}
-
-.status-close{
-color:#ef4444;
-font-weight:bold;
-}
-
-.status-result{
-color:#f59e0b;
-font-weight:bold;
-}
-
+body{background:#050816;color:white;font-family:sans-serif;padding:20px;}
+.glow{text-shadow:0 0 10px #f59e0b,0 0 20px #f59e0b,0 0 40px #f59e0b;}
+.card{background:rgba(15,23,42,.8);padding:20px;border-radius:20px;margin-bottom:20px;}
+.input-box{width:100%;padding:15px;font-size:24px;border-radius:15px;background:black;color:white;border:2px solid #f59e0b;outline:none;margin-bottom:15px;}
+.btn{background:linear-gradient(90deg,#f59e0b,#fde047);color:black;font-weight:700;padding:16px;border-radius:15px;width:100%;cursor:pointer;border:none;font-size:18px;}
+.btn:hover{box-shadow:0 0 20px #f59e0b;transform:scale(1.02);}
+.history-card{background:#0f172a;padding:15px;border-radius:15px;margin-bottom:10px;}
 </style>
-
 </head>
+<body>
 
-<body class="p-5 md:p-10">
+<h1 class="text-4xl glow mb-5">🎰 DBBA ADMIN PANEL 🎰</h1>
 
-<div class="max-w-7xl mx-auto">
-
-<h1 class="text-5xl md:text-6xl font-black text-center mb-8 glow">
-🎰 DBBA ADMIN PANEL 🎰
-</h1>
-
-<!-- STATUS -->
+<!-- ANNOUNCE RESULT -->
 <div class="card">
-
-<div class="flex justify-between items-center flex-wrap gap-4">
-
-<div>
-<div class="text-xl opacity-70">
-Current Phase
+<h2 class="text-2xl glow mb-3">Announce 10-digit Result</h2>
+<input type="text" id="resultInput" class="input-box" maxlength="10" placeholder="e.g. 9475938492">
+<button id="announceBtn" class="btn">🚀 Announce Result</button>
+<div id="status" class="mt-3 glow"></div>
 </div>
 
-<div id="phase"
-class="text-3xl font-black glow">
-Loading...
-</div>
-</div>
-
-<div>
-<div class="text-xl opacity-70">
-India Time
-</div>
-
-<div id="india-time"
-class="text-3xl font-black">
-00:00:00
-</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- LIVE RESULT -->
+<!-- ROUND CONTROL -->
 <div class="card">
-
-<div class="text-3xl font-black mb-5 glow">
-LIVE RESULT DISPLAY
-</div>
-
-<div id="result-tv"
-class="result-tv">
-----------
-</div>
-
-</div>
-
-<!-- SELECT RESULT -->
-<div class="card">
-
-<div class="text-3xl font-black mb-5 glow">
-ANNOUNCE RESULT
-</div>
-
-<!-- POSITION -->
-<div class="mb-5">
-
-<label class="text-xl block mb-3">
-Select Position
-</label>
-
-<select id="position"
-class="w-full bg-black border border-yellow-500 rounded-2xl p-5 text-2xl">
-
-<option value="1">Position 1</option>
-<option value="2">Position 2</option>
-<option value="3">Position 3</option>
-<option value="4">Position 4</option>
-<option value="5">Position 5</option>
-<option value="6">Position 6</option>
-<option value="7">Position 7</option>
-<option value="8">Position 8</option>
-<option value="9">Position 9</option>
-<option value="10">Position 10</option>
-
-</select>
-
-</div>
-
-<!-- NUMBER GRID -->
-<div class="mb-6">
-
-<div class="text-xl mb-4">
-Select Digit
-</div>
-
-<div id="number-grid"
-class="flex flex-wrap gap-3">
-</div>
-
-</div>
-
-<button id="announceBtn"
-class="btn">
-🚀 ANNOUNCE DIGIT
-</button>
-
-<div id="announce-status"
-class="mt-5 text-center text-2xl font-black">
-</div>
-
-</div>
-
-<!-- FINAL ANNOUNCE -->
-<div class="card">
-
-<div class="text-3xl font-black mb-5 glow">
-FINAL RESULT ANNOUNCE
-</div>
-
-<button id="finalBtn"
-class="btn">
-🎯 FINAL ANNOUNCE RESULT
-</button>
-
+<h2 class="text-2xl glow mb-3">Round Control</h2>
+<button id="nextRoundBtn" class="btn">🔄 Start Next Round</button>
+<div id="roundInfo" class="mt-3 glow">Current Round: 1</div>
 </div>
 
 <!-- RESULT HISTORY -->
 <div class="card">
-
-<div class="text-3xl font-black mb-5 glow">
-RESULT HISTORY
-</div>
-
-<div id="results-history">
-</div>
-
-</div>
-
+<h2 class="text-2xl glow mb-3">All Announced Results</h2>
+<div id="historyDiv"></div>
 </div>
 
 <script>
-
-// ============================
+// ==========================
 // VARIABLES
-// ============================
-
-let selectedDigit = null;
-
-let finalResult = Array(10).fill("-");
-
-// ============================
-// CREATE NUMBER GRID
-// ============================
-
-const grid = document.getElementById("number-grid");
-
-for(let i=0;i<=9;i++){
-
-const box = document.createElement("div");
-
-box.className = "number-box";
-
-box.innerText = i;
-
-box.onclick = ()=>{
-
-document.querySelectorAll(".number-box")
-.forEach(x=>x.classList.remove("active"));
-
-box.classList.add("active");
-
-selectedDigit = i;
-
-};
-
-grid.appendChild(box);
-
-}
-
-// ============================
-// INDIA TIME + PHASE
-// ============================
-
-function updateIndiaTime(){
-
-const now = new Date();
-
-const india = new Date(
-now.toLocaleString("en-US",{
-timeZone:"Asia/Kolkata"
-})
-);
-
-document.getElementById("india-time")
-.innerText =
-india.toLocaleTimeString();
-
-const h = india.getHours();
-
-let phase = "";
-
-let cls = "";
-
-if(h>=0 && h<14){
-
-phase = "🟢 BETTING OPEN";
-
-cls = "status-open";
-
-}
-else if(h>=14 && h<=23){
-
-phase = "🟡 RESULT ANNOUNCEMENT";
-
-cls = "status-result";
-
-}
-else{
-
-phase = "🔴 BETTING CLOSED";
-
-cls = "status-close";
-
-}
-
-const phaseEl =
-document.getElementById("phase");
-
-phaseEl.innerText = phase;
-
-phaseEl.className =
-`text-3xl font-black glow ${cls}`;
-
-}
-
-setInterval(updateIndiaTime,1000);
-
-updateIndiaTime();
-
-// ============================
-// ANNOUNCE DIGIT
-// ============================
-
-document.getElementById("announceBtn")
-.addEventListener("click",()=>{
-
-const position =
-parseInt(
-document.getElementById("position").value
-);
-
-if(selectedDigit===null){
-
-document.getElementById("announce-status")
-.innerText = "❌ SELECT A DIGIT";
-
-return;
-
-}
-
-finalResult[position-1] = selectedDigit;
-
-document.getElementById("result-tv")
-.innerText = finalResult.join("");
-
-document.getElementById("announce-status")
-.innerText =
-`✅ Digit ${selectedDigit} announced at Position ${position}`;
-
-addHistory(position,selectedDigit);
-
-});
-
-// ============================
-// RESULT HISTORY
-// ============================
-
-function addHistory(position,digit){
-
-const history =
-document.getElementById("results-history");
-
-const div =
-document.createElement("div");
-
-div.className = "result-card";
-
-div.innerHTML = `
-
-<div class="text-xl font-bold">
-Position ${position}
-</div>
-
-<div class="text-4xl font-black glow">
-${digit}
-</div>
-
-<div class="opacity-70">
-${new Date().toLocaleTimeString()}
-</div>
-
-`;
-
-history.prepend(div);
-
-}
-
-// ============================
-// FINAL RESULT ANNOUNCE
-// ============================
-
-document.getElementById("finalBtn")
-.addEventListener("click",()=>{
-
-const resultString =
-finalResult.join("");
-
-if(resultString.includes("-")){
-
-alert("Please complete all 10 positions");
-
-return;
-
-}
-
-// SAVE RESULT
-localStorage.setItem(
-"dbba_result",
-resultString
-);
-
-// SAVE TIME
-localStorage.setItem(
-"dbba_result_time",
-Date.now()
-);
-
-document.getElementById("announce-status")
-.innerText =
-`🎯 FINAL RESULT ANNOUNCED: ${resultString}`;
-
-alert(
-"✅ Result Announced Successfully!"
-);
-
-});
-
-// ============================
-// AUTO RESET DAILY
-// ============================
-
-function resetResult(){
-
-finalResult = Array(10).fill("-");
-
-document.getElementById("result-tv")
-.innerText = "----------";
-
-selectedDigit = null;
-
-document.querySelectorAll(".number-box")
-.forEach(x=>x.classList.remove("active"));
-
-}
-  const btn = document.getElementById("announceBtn");
-const input = document.getElementById("resultInput");
-const status = document.getElementById("status");
-
-btn.onclick = ()=>{
-    const value = input.value.trim();
+// ==========================
+let roundNumber = parseInt(localStorage.getItem("dbba_roundNumber") || "1");
+let history = JSON.parse(localStorage.getItem("dbba_resultHistory") || "[]");
+
+// Display past results
+history.forEach(item => addHistory(item.result, item.round));
+
+// ==========================
+// ANNOUNCE RESULT
+// ==========================
+document.getElementById("announceBtn").onclick = ()=>{
+    const value = document.getElementById("resultInput").value.trim();
     if(!/^\d{10}$/.test(value)){
         alert("Enter exactly 10 digits");
         return;
     }
 
-    // Save result in localStorage
+    // Save result in localStorage for user panels
     localStorage.setItem("dbba_result", value);
     localStorage.setItem("dbba_result_time", Date.now());
 
-    status.innerText = `✅ Result Announced: ${value}`;
-    alert("Result saved and announced!");
-}
+    // Save history
+    history.push({result:value, round:roundNumber});
+    localStorage.setItem("dbba_resultHistory", JSON.stringify(history));
 
+    addHistory(value, roundNumber);
+
+    document.getElementById("status").innerText = `✅ Result Announced: ${value}`;
+    alert("Result announced for Round "+roundNumber+"!");
+
+    // Disable announce button to prevent duplicate result
+    document.getElementById("announceBtn").disabled = true;
+    document.getElementById("resultInput").disabled = true;
+};
+
+// ==========================
+// START NEXT ROUND
+// ==========================
+document.getElementById("nextRoundBtn").onclick = ()=>{
+    roundNumber++;
+    localStorage.setItem("dbba_roundNumber", roundNumber);
+
+    // Clear current result to allow new round
+    localStorage.removeItem("dbba_result");
+
+    // Enable announce input/button
+    document.getElementById("announceBtn").disabled = false;
+    document.getElementById("resultInput").disabled = false;
+    document.getElementById("resultInput").value = "";
+
+    document.getElementById("roundInfo").innerText = `Current Round: ${roundNumber}`;
+
+    alert("✅ Round "+roundNumber+" is now open for betting!");
+};
+
+// ==========================
+// ADD HISTORY
+// ==========================
+function addHistory(result, round){
+    const div = document.createElement("div");
+    div.className = "history-card";
+    div.innerHTML = `<div><strong>Round ${round}:</strong> ${result}</div>`;
+    document.getElementById("historyDiv").prepend(div);
+}
 </script>
 
 </body>
