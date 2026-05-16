@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moneyland Corporation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+
+        body { background-color: #0a0a0a; color: #fff; }
+
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background-color: #0a0a0a; }
+        header img { height: 50px; }
+        nav a { color: #fff; margin: 0 15px; text-decoration: none; font-weight: 500; }
+        nav a:hover { color: #f5c97b; }
+        .header-btn { background-color: #f5c97b; color: #000; padding: 10px 20px; border: none; cursor: pointer; font-weight: 500; border-radius: 5px; }
+        .header-btn:hover { background-color: #d4a85c; }
+
+        /* Hero */
+        .hero { background: url('https://images.unsplash.com/photo-1560184897-e4e6e4de4c90?auto=format&fit=crop&w=1470&q=80') center/cover no-repeat; padding: 150px 50px 80px; text-align: center; }
+        .hero h1 { font-size: 3rem; margin-bottom: 20px; }
+        .hero h1 span { color: #f5c97b; }
+        .hero p { font-size: 1.2rem; margin-bottom: 30px; color: #ccc; }
+
+        .search-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; max-width: 900px; margin: 0 auto; }
+        .search-bar input, .search-bar select { padding: 12px; border-radius: 5px; border: none; width: 180px; }
+        .search-bar button { padding: 12px 25px; border: none; border-radius: 5px; background-color: #f5c97b; cursor: pointer; font-weight: 500; }
+        .search-bar button:hover { background-color: #d4a85c; }
+
+        /* Featured Properties */
+        .featured { padding: 80px 50px; text-align: center; }
+        .featured h2 { font-size: 2.5rem; margin-bottom: 40px; }
+        .property-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .property-card { background-color: #111; border-radius: 10px; overflow: hidden; transition: transform 0.3s; }
+        .property-card:hover { transform: translateY(-5px); }
+        .property-card img { width: 100%; height: 180px; object-fit: cover; }
+        .property-info { padding: 15px; text-align: left; }
+        .property-info h3 { margin-bottom: 5px; }
+        .property-info p { font-size: 0.9rem; margin-bottom: 10px; color: #ccc; }
+        .property-info .price { color: #f5c97b; font-weight: 600; margin-bottom: 10px; }
+
+        /* About Section */
+        .about { background-color: #111; padding: 80px 50px; text-align: center; }
+        .about h2 { font-size: 2rem; margin-bottom: 20px; }
+        .about p { max-width: 800px; margin: 0 auto; color: #ccc; line-height: 1.8; }
+
+        /* Contact Section */
+        .contact { padding: 80px 50px; text-align: center; }
+        .contact h2 { font-size: 2rem; margin-bottom: 20px; }
+        .contact form { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .contact input, .contact textarea { padding: 12px; border-radius: 5px; border: none; }
+        .contact button { padding: 12px; border-radius: 5px; border: none; background-color: #f5c97b; cursor: pointer; font-weight: 500; }
+        .contact button:hover { background-color: #d4a85c; }
+
+        /* Footer */
+        footer { background-color: #0a0a0a; padding: 40px 50px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; color: #ccc; }
+        footer .column h4 { color: #f5c97b; margin-bottom: 15px; }
+        footer .column p, footer .column a { color: #ccc; font-size: 0.9rem; text-decoration: none; }
+        footer .social a { margin-right: 15px; color: #ccc; font-size: 1.2rem; }
+        footer .social a:hover { color: #f5c97b; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <img src="Moneyland logo(2).jpg" alt="Moneyland Logo">
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Buy</a>
+            <a href="#">Rent</a>
+            <a href="#">Projects</a>
+            <a href="#">Commercial</a>
+            <a href="#">Sell</a>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+        </nav>
+        <button class="header-btn">List Your Property</button>
+        <span style="margin-left:20px;">📞 8178593108</span>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1>Find Your Perfect Property with <span>Moneyland Corporation</span></h1>
+        <p>Trusted real estate solutions for a better tomorrow.</p>
+        <div class="search-bar">
+            <input type="text" placeholder="Enter Location">
+            <select>
+                <option>Property Type</option>
+                <option>Apartment</option>
+                <option>Villa</option>
+                <option>Plot</option>
+                <option>Commercial</option>
+            </select>
+            <input type="text" placeholder="Min Price">
+            <input type="text" placeholder="Max Price">
+            <button>Search</button>
+        </div>
+    </section>
+
+    <!-- Featured Properties -->
+    <section class="featured">
+        <h2>Explore Our Top Listings</h2>
+        <div class="property-grid">
+            <div class="property-card">
+                <img src="https://images.unsplash.com/photo-1560184897-e4e6e4de4c90?auto=format&fit=crop&w=800&q=80" alt="Property 1">
+                <div class="property-info">
+                    <h3>DLF The Camellias</h3>
+                    <p>Sector 65, Gurgaon | 4 BHK Apartment | 4500 Sq.Ft</p>
+                    <p class="price">₹ 45.00 Cr</p>
+                </div>
+            </div>
+            <div class="property-card">
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Property 2">
+                <div class="property-info">
+                    <h3>M3M Golf Estate</h3>
+                    <p>Sector 65, Gurgaon | 4 BHK Villa | 500 Sq.Yd</p>
+                    <p class="price">₹ 18.50 Cr</p>
+                </div>
+            </div>
+            <div class="property-card">
+                <img src="https://images.unsplash.com/photo-1560185127-ec5f3b9042f6?auto=format&fit=crop&w=800&q=80" alt="Property 3">
+                <div class="property-info">
+                    <h3>Pioneer Araya</h3>
+                    <p>Sector 62, Gurgaon | 3 BHK Apartment | 1950 Sq.Ft</p>
+                    <p class="price">₹ 85,000 /mo</p>
+                </div>
+            </div>
+            <div class="property-card">
+                <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80" alt="Property 4">
+                <div class="property-info">
+                    <h3>Elan Empire</h3>
+                    <p>Sector 66, Gurgaon | Office Space | 1200 Sq.Ft</p>
+                    <p class="price">₹ 3.25 Cr</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us -->
+    <section class="about">
+        <h2>About Moneyland Corporation</h2>
+        <p>Founded by Rommy Singh, Moneyland Corporation is committed to delivering trusted real estate solutions. Our team ensures seamless property transactions, expert guidance, and the best value for our clients.</p>
+        <p>Address: R1/205, M3M 65th Avenue, Sector 65, Gurgaon | Phone: +91 8178593108</p>
+    </section>
+
+    <!-- Contact -->
+    <section class="contact">
+        <h2>Contact Us</h2>
+        <form>
+            <input type="text" placeholder="Your Name">
+            <input type="email" placeholder="Your Email">
+            <textarea rows="5" placeholder="Your Message"></textarea>
+            <button type="submit">Send Message</button>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="column">
+            <img src="Moneyland logo(2).jpg" alt="Moneyland Logo" style="height:40px; margin-bottom:10px;">
+            <div class="social">
+                <a href="#">🔗</a>
+                <a href="#">🔗</a>
+                <a href="#">🔗</a>
+            </div>
+        </div>
+        <div class="column">
+            <h4>Company</h4>
+            <a href="#">About Us</a><br>
+            <a href="#">Careers</a><br>
+            <a href="#">Blog</a><br>
+            <a href="#">Contact Us</a>
+        </div>
+        <div class="column">
+            <h4>Quick Links</h4>
+            <a href="#">Buy Property</a><br>
+            <a href="#">Rent Property</a><br>
+            <a href="#">Commercial</a><br>
+            <a href="#">Projects</a>
+        </div>
+        <div class="column">
+            <h4>Contact</h4>
+            <p>R1/205, M3M 65th Avenue, Sector 65, Gurgaon</p>
+            <p>📞 8178593108</p>
+            <p>✉ info@moneylandcorporation.com</p>
+        </div>
+    </footer>
+
+</body>
+</html>
