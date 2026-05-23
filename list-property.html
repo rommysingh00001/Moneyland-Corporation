@@ -164,8 +164,8 @@ Submit Property
 // SUPABASE
 // ==========================
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://xkxoerpxhueshzzckcrb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhreG9lcnB4aHVlc2h6emNrY3JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MjM2NTQsImV4cCI6MjA5NTA5OTY1NH0.uYCEJOkTrASG62TSJy4AcOkTFX2epk3I5HRd1USm4Dc';
 
 const client = supabase.createClient(
 SUPABASE_URL,
@@ -218,6 +218,8 @@ preview.appendChild(video);
 
 async function submitProperty(){
 
+try{
+
 const imageFiles =
 document.getElementById('images').files;
 
@@ -227,59 +229,65 @@ document.getElementById('videos').files;
 let imageUrls = [];
 let videoUrls = [];
 
-// ==========================
-// UPLOAD IMAGES
-// ==========================
+// ======================
+// IMAGE UPLOAD
+// ======================
 
-for(let file of imageFiles){
-
-const fileName =
-Date.now() + '-' + file.name;
-
-const { error } = await client.storage
-.from('property-media')
-.upload(fileName,file);
-
-if(!error){
-
-const { data } = client.storage
-.from('property-media')
-.getPublicUrl(fileName);
-
-imageUrls.push(data.publicUrl);
-
-}
-
-}
-
-// ==========================
-// UPLOAD VIDEOS
-// ==========================
-
-for(let file of videoFiles){
+for(const file of imageFiles){
 
 const fileName =
 Date.now() + '-' + file.name;
 
-const { error } = await client.storage
+const { data, error } =
+await client.storage
 .from('property-media')
-.upload(fileName,file);
+.upload(fileName, file);
 
-if(!error){
+if(error){
+console.log(error);
+continue;
+}
 
-const { data } = client.storage
+const publicUrl =
+client.storage
 .from('property-media')
 .getPublicUrl(fileName);
 
-videoUrls.push(data.publicUrl);
+imageUrls.push(publicUrl.data.publicUrl);
 
 }
 
+// ======================
+// VIDEO UPLOAD
+// ======================
+
+for(const file of videoFiles){
+
+const fileName =
+Date.now() + '-video-' + file.name;
+
+const { data, error } =
+await client.storage
+.from('property-media')
+.upload(fileName, file);
+
+if(error){
+console.log(error);
+continue;
 }
 
-// ==========================
-// SAVE PROPERTY
-// ==========================
+const publicUrl =
+client.storage
+.from('property-media')
+.getPublicUrl(fileName);
+
+videoUrls.push(publicUrl.data.publicUrl);
+
+}
+
+// ======================
+// SAVE DATABASE
+// ======================
 
 const property = {
 
@@ -310,23 +318,31 @@ videos:videoUrls
 
 };
 
-const { error } = await client
+const { error } =
+await client
 .from('properties')
 .insert([property]);
 
 if(error){
 
 alert(error.message);
+console.log(error);
 return;
 
 }
 
 alert('Property Listed Successfully');
 
-window.location.href = 'index.html';
+window.location.href='index.html';
+
+}catch(err){
+
+console.log(err);
+alert('Something went wrong');
 
 }
 
+}
 </script>
 
 </body>
