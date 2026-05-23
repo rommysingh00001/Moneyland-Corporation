@@ -612,9 +612,9 @@ width:100%;
 <a href="#contact">Contact</a>
 </nav>
 
-<a href="tel:8178593108" class="call-btn">
-📞 8178593108
-</a>
+<button class="call-btn" onclick="openPropertyModal()">
++ List Your Property
+</button>
 
 </header>
 
@@ -657,7 +657,9 @@ Premium Real Estate Solutions in Gurgaon & Delhi NCR
 
 <input type="text" placeholder="Max Budget">
 
-<button>Search Property</button>
+<button onclick="searchProperties()">
+Search Property
+</button>
 
 </div>
 
@@ -889,6 +891,19 @@ document.getElementById('header')
 .classList.toggle('sticky',window.scrollY > 0);
 
 });
+
+  function searchProperties(){
+
+document.getElementById('properties').style.display = 'block';
+
+loadProperties();
+
+document.getElementById('properties')
+.scrollIntoView({
+behavior:'smooth'
+});
+
+}
 
 </script>
 
