@@ -1,9 +1,11 @@
-// supabase.js
-export const SUPABASE_URL = "https://mqmcnbsgnaunqsiqbzxy.supabase.co";      // Replace with your URL
-export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xbWNuYnNnbmF1bnFzaXFienh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MjYyNzIsImV4cCI6MjA5NDIwMjI3Mn0.Z_ZXi4q5NKGQw_6k0ICaz94ilnoky8jdYqhtTmKLAE4";          // Replace with your anon key
+// ==========================
+// SUPABASE
+// ==========================
 
-// Create Supabase client
-export const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://xkxoerpxhueshzzckcrb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhreG9lcnB4aHVlc2h6emNrY3JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MjM2NTQsImV4cCI6MjA5NTA5OTY1NH0.uYCEJOkTrASG62TSJy4AcOkTFX2epk3I5HRd1USm4Dc';
 
-// Demo USER_ID (replace with auth later)
-export const USER_ID = "demo-user";
+const client = supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
