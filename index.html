@@ -643,19 +643,30 @@ Premium Real Estate Solutions in Gurgaon & Delhi NCR
 
 <div class="search-bar">
 
-<input type="text" placeholder="Enter Location">
+<input type="text"
+id="searchLocation"
+placeholder="Enter Location">
 
-<select>
-<option>Property Type</option>
+<select id="searchType">
+
+<option value="">Property Type</option>
+
 <option>Apartment</option>
 <option>Villa</option>
 <option>Commercial</option>
 <option>Plots</option>
+<option>Office Space</option>
+<option>Shop</option>
+
 </select>
 
-<input type="text" placeholder="Min Budget">
+<input type="number"
+id="minBudget"
+placeholder="Min Budget">
 
-<input type="text" placeholder="Max Budget">
+<input type="number"
+id="maxBudget"
+placeholder="Max Budget">
 
 <button onclick="searchProperties()">
 Search Property
@@ -897,6 +908,181 @@ document.getElementById('header')
 document.getElementById('properties').style.display = 'block';
 
 loadProperties();
+
+document.getElementById('properties')
+.scrollIntoView({
+behavior:'smooth'
+});
+
+}
+  async function searchProperties(){
+
+document.getElementById('properties')
+.style.display='block';
+
+const location =
+document.getElementById('searchLocation')
+.value.toLowerCase();
+
+const type =
+document.getElementById('searchType')
+.value;
+
+const minBudget =
+document.getElementById('minBudget')
+.value;
+
+const maxBudget =
+document.getElementById('maxBudget')
+.value;
+
+
+// ======================
+// QUERY
+// ======================
+
+let query = client
+.from('properties')
+.select('*');
+
+
+// ======================
+// LOCATION FILTER
+// ======================
+
+if(location){
+
+query = query.ilike(
+'location',
+`%${location}%`
+);
+
+}
+
+
+// ======================
+// TYPE FILTER
+// ======================
+
+if(type){
+
+query = query.eq(
+'property_type',
+type
+);
+
+}
+
+
+// ======================
+// FETCH
+// ======================
+
+const { data, error } =
+await query;
+
+if(error){
+
+console.log(error);
+return;
+
+}
+
+
+// ======================
+// BUDGET FILTER
+// ======================
+
+let filteredData =
+data.filter(property=>{
+
+const price =
+parseInt(
+property.price.replace(/[^0-9]/g,'')
+);
+
+if(minBudget && price < minBudget)
+return false;
+
+if(maxBudget && price > maxBudget)
+return false;
+
+return true;
+
+});
+
+
+// ======================
+// SHOW PROPERTIES
+// ======================
+
+const grid =
+document.getElementById('propertyGrid');
+
+grid.innerHTML='';
+
+
+if(filteredData.length === 0){
+
+grid.innerHTML = `
+
+<h2 style="
+grid-column:span 3;
+text-align:center;
+color:#9b59b6;
+">
+
+No Properties Found
+
+</h2>
+`;
+
+return;
+
+}
+
+
+filteredData.forEach(property=>{
+
+let image =
+property.images?.[0]
+|| 'assets/property1.jpg';
+
+grid.innerHTML += `
+
+<div class="property-card">
+
+<img src="${image}">
+
+<div class="property-content">
+
+<h3>${property.title}</h3>
+
+<p>${property.location}</p>
+
+<p>${property.property_type}</p>
+
+<div class="price">
+₹ ${property.price}
+</div>
+
+<br>
+
+<a href="tel:${property.phone}"
+class="call-btn">
+
+Call Now
+
+</a>
+
+</div>
+
+</div>
+
+`;
+
+});
+
 
 document.getElementById('properties')
 .scrollIntoView({
