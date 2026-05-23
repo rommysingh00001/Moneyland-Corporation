@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>List Property | Moneyland</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:#050505;
+color:#fff;
+padding:40px 20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+background:#111;
+padding:40px;
+border-radius:25px;
+border:1px solid rgba(255,255,255,0.06);
+}
+
+h1{
+text-align:center;
+margin-bottom:30px;
+font-size:42px;
+color:#9b59b6;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+input,
+select,
+textarea{
+width:100%;
+padding:16px;
+border:none;
+border-radius:12px;
+background:#1c1c1c;
+color:#fff;
+font-size:15px;
+}
+
+textarea{
+grid-column:span 2;
+}
+
+.full{
+grid-column:span 2;
+}
+
+button{
+padding:18px;
+border:none;
+border-radius:12px;
+background:#9b59b6;
+color:#fff;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+background:#7d3c98;
+}
+
+.preview{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-top:15px;
+}
+
+.preview img,
+.preview video{
+width:140px;
+height:100px;
+object-fit:cover;
+border-radius:12px;
+}
+
+@media(max-width:700px){
+
+.form-grid{
+grid-template-columns:1fr;
+}
+
+textarea,
+.full{
+grid-column:span 1;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>List Your Property</h1>
+
+<div class="form-grid">
+
+<input type="text" id="title" placeholder="Property Title">
+
+<input type="text" id="owner" placeholder="Owner Name">
+
+<input type="text" id="phone" placeholder="Phone Number">
+
+<select id="type">
+<option>Apartment</option>
+<option>Villa</option>
+<option>Commercial</option>
+<option>Office Space</option>
+<option>Shop</option>
+<option>Plot</option>
+</select>
+
+<input type="text" id="location" placeholder="Location">
+
+<input type="text" id="price" placeholder="Price">
+
+<input type="file" id="images" multiple accept="image/*" class="full">
+
+<input type="file" id="videos" multiple accept="video/*" class="full">
+
+<textarea rows="6" id="description" placeholder="Property Description"></textarea>
+
+<button class="full" onclick="submitProperty()">
+Submit Property
+</button>
+
+</div>
+
+<div class="preview" id="preview"></div>
+
+</div>
+
+<script>
+
+// ==========================
+// SUPABASE
+// ==========================
+
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+const client = supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+// ==========================
+// PREVIEW
+// ==========================
+
+const preview = document.getElementById('preview');
+
+document.getElementById('images')
+.addEventListener('change', function(){
+
+preview.innerHTML = '';
+
+Array.from(this.files).forEach(file=>{
+
+const img = document.createElement('img');
+
+img.src = URL.createObjectURL(file);
+
+preview.appendChild(img);
+
+});
+
+});
+
+document.getElementById('videos')
+.addEventListener('change', function(){
+
+Array.from(this.files).forEach(file=>{
+
+const video = document.createElement('video');
+
+video.src = URL.createObjectURL(file);
+
+video.controls = true;
+
+preview.appendChild(video);
+
+});
+
+});
+
+// ==========================
+// SUBMIT PROPERTY
+// ==========================
+
+async function submitProperty(){
+
+const imageFiles =
+document.getElementById('images').files;
+
+const videoFiles =
+document.getElementById('videos').files;
+
+let imageUrls = [];
+let videoUrls = [];
+
+// ==========================
+// UPLOAD IMAGES
+// ==========================
+
+for(let file of imageFiles){
+
+const fileName =
+Date.now() + '-' + file.name;
+
+const { error } = await client.storage
+.from('property-media')
+.upload(fileName,file);
+
+if(!error){
+
+const { data } = client.storage
+.from('property-media')
+.getPublicUrl(fileName);
+
+imageUrls.push(data.publicUrl);
+
+}
+
+}
+
+// ==========================
+// UPLOAD VIDEOS
+// ==========================
+
+for(let file of videoFiles){
+
+const fileName =
+Date.now() + '-' + file.name;
+
+const { error } = await client.storage
+.from('property-media')
+.upload(fileName,file);
+
+if(!error){
+
+const { data } = client.storage
+.from('property-media')
+.getPublicUrl(fileName);
+
+videoUrls.push(data.publicUrl);
+
+}
+
+}
+
+// ==========================
+// SAVE PROPERTY
+// ==========================
+
+const property = {
+
+title:
+document.getElementById('title').value,
+
+owner_name:
+document.getElementById('owner').value,
+
+phone:
+document.getElementById('phone').value,
+
+property_type:
+document.getElementById('type').value,
+
+location:
+document.getElementById('location').value,
+
+price:
+document.getElementById('price').value,
+
+description:
+document.getElementById('description').value,
+
+images:imageUrls,
+
+videos:videoUrls
+
+};
+
+const { error } = await client
+.from('properties')
+.insert([property]);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+alert('Property Listed Successfully');
+
+window.location.href = 'index.html';
+
+}
+
+</script>
+
+</body>
+</html>
